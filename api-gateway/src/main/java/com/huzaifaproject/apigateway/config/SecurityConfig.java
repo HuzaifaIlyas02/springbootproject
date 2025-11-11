@@ -2,6 +2,7 @@ package com.huzaifaproject.apigateway.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
@@ -23,11 +24,17 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .authorizeExchange(exchange ->
-                        exchange.pathMatchers("/eureka/**")
-                                .permitAll()
-                                .anyExchange()
-                                .authenticated())
-                .oauth2ResourceServer(spec -> spec.jwt(Customizer.withDefaults()));
+                        exchange.pathMatchers("/eureka/**").permitAll()
+                                // Only ADMIN can create products (POST)
+                                .pathMatchers(HttpMethod.POST, "/api/product").hasRole("ADMIN")
+                                // Anyone authenticated can view products (GET)
+                                .pathMatchers(HttpMethod.GET, "/api/product").authenticated()
+                                // Anyone authenticated can place orders
+                                .pathMatchers("/api/order/**").authenticated()
+                                // Anyone authenticated can check inventory
+                                .pathMatchers("/api/inventory/**").authenticated()
+                                .anyExchange().authenticated())
+                .oauth2ResourceServer(spec -> spec.jwt(jwtSpec -> jwtSpec.jwtAuthenticationConverter(new KeycloakJwtAuthenticationConverter())));
         return serverHttpSecurity.build();
     }
 

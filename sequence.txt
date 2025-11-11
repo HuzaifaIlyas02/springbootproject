@@ -10,3 +10,28 @@ Inventory Service
 CLEAN BUILD 
 
 mvnd clean package -DskipTests
+
+
+
+Admin User
+Username: admin
+Password: admin (or what you set)
+Roles: ADMIN
+Can: Create products, view products, place orders
+
+
+Regular User
+Username: testuser
+Password: password
+Roles: USER (or none)
+Can: View products, place orders
+Cannot: Create products
+
+
+
+
+Build Required: 
+After changes, rebuild API Gateway: 
+
+- mvnd clean package -DskipTests
+
