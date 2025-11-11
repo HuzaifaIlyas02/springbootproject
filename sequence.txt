@@ -1,0 +1,12 @@
+
+Discovery Server (Wait 20-30 seconds)
+API Gateway (Wait 10 seconds)
+Product Service
+Order Service
+Inventory Service
+
+
+
+CLEAN BUILD 
+
+mvnd clean package -DskipTests
