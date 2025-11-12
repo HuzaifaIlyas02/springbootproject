@@ -5,6 +5,15 @@ Product Service
 Order Service
 Inventory Service
 
+discovery-server:    # Port 8761
+api-gateway:         # Port 8181
+product-service:     # Port 8080
+order-service:       # Port 8081
+inventory-service:   # Port 8082
+keycloak:           # Port 8080
+mongodb:            # Port 27017
+mysql:              # Port 3306
+
 
 
 CLEAN BUILD 
