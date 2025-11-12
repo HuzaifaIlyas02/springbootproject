@@ -21,17 +21,19 @@ public class SecurityConfig {
     @Bean
     public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity serverHttpSecurity) {
         serverHttpSecurity
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeExchange(exchange ->
                         exchange.pathMatchers("/eureka/**").permitAll()
-                                // Only ADMIN can create products (POST)
+                                // Admin-only product operations
                                 .pathMatchers(HttpMethod.POST, "/api/product").hasRole("ADMIN")
-                                // Anyone authenticated can view products (GET)
+                                .pathMatchers(HttpMethod.PUT, "/api/product/**").hasRole("ADMIN")
+                                .pathMatchers(HttpMethod.DELETE, "/api/product/**").hasRole("ADMIN")
+                                // Anyone authenticated can view products
+                                .pathMatchers(HttpMethod.GET, "/api/product/**").authenticated()
                                 .pathMatchers(HttpMethod.GET, "/api/product").authenticated()
-                                // Anyone authenticated can place orders
+                                // Order and inventory access
                                 .pathMatchers("/api/order/**").authenticated()
-                                // Anyone authenticated can check inventory
                                 .pathMatchers("/api/inventory/**").authenticated()
                                 .anyExchange().authenticated())
                 .oauth2ResourceServer(spec -> spec.jwt(jwtSpec -> jwtSpec.jwtAuthenticationConverter(new KeycloakJwtAuthenticationConverter())));

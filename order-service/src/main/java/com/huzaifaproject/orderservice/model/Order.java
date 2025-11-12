@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import jakarta.persistence.*;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
@@ -19,6 +20,17 @@ public class Order {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String orderNumber;
+    private String username; // User who placed the order
+    private LocalDateTime orderDate;
+    
     @OneToMany(cascade = CascadeType.ALL)
     private List<OrderLineItems> orderLineItemsList;
+    
+    // Delivery Details
+    private String deliveryAddress;
+    private String phoneNumber;
+    private String email;
+    
+    @Enumerated(EnumType.STRING)
+    private PaymentMethod paymentMethod;
 }
