@@ -7,6 +7,7 @@ import com.huzaifaproject.orderservice.dto.OrderResponse;
 import com.huzaifaproject.orderservice.model.Order;
 import com.huzaifaproject.orderservice.model.OrderLineItems;
 import com.huzaifaproject.orderservice.repository.OrderRepository;
+import com.huzaifaproject.orderservice.exception.OrderProcessingException;
 import io.micrometer.observation.Observation;
 import io.micrometer.observation.ObservationRegistry;
 import lombok.RequiredArgsConstructor;
@@ -71,16 +72,16 @@ public class OrderService {
             boolean allProductsInStock = Arrays.stream(inventoryResponseArray)
                     .allMatch(InventoryResponse::isInStock);
 
-            if (allProductsInStock) {
-                orderRepository.save(order);
-                
-                // Update product quantities in Product Service
-                updateProductQuantities(orderRequest.getOrderLineItemsDtoList());
-                
-                return order.getOrderNumber();
-            } else {
-                throw new IllegalArgumentException("Product is not in stock, please try again later");
+            if (!allProductsInStock) {
+                throw new OrderProcessingException("One or more products are out of stock, please try again later");
             }
+
+            orderRepository.save(order);
+
+            // Update product quantities in Product Service
+            updateProductQuantities(orderRequest.getOrderLineItemsDtoList());
+
+            return order.getOrderNumber();
         });
     }
     

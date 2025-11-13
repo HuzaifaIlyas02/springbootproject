@@ -1,0 +1,7 @@
+.git
+.gitignore
+target
+*/target
+ecommerce/node_modules
+ecommerce/build
+node_modules

@@ -1,6 +1,7 @@
 package com.huzaifaproject.inventoryservice.controller;
 
 import com.huzaifaproject.inventoryservice.dto.InventoryResponse;
+import com.huzaifaproject.inventoryservice.exception.InventoryServiceException;
 import com.huzaifaproject.inventoryservice.service.InventoryService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,13 +18,13 @@ public class InventoryController {
 
     private final InventoryService inventoryService;
 
-    // http://localhost:8082/api/inventory/iphone-13,iphone13-red
-
-    // http://localhost:8082/api/inventory?skuCode=iphone-13&skuCode=iphone13-red
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     public List<InventoryResponse> isInStock(@RequestParam List<String> skuCode) {
         log.info("Received inventory check request for skuCode: {}", skuCode);
+        if (skuCode == null || skuCode.isEmpty()) {
+            throw new InventoryServiceException("At least one skuCode query parameter is required");
+        }
         return inventoryService.isInStock(skuCode);
     }
 }

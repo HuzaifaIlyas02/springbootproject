@@ -44,3 +44,11 @@ After changes, rebuild API Gateway:
 
 - mvnd clean package -DskipTests
 
+
+DOCKER:
+docker image prune -a   # to remove all images 
+docker compose Up
+docker compose down
+docker compose build
+docker compose up -d
+

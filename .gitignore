@@ -39,3 +39,7 @@ build/
 .DS_Store
 
 keycloak-data
+mongo-data
+mysql_keycloak_data
+postgres-inventory
+postgres-order

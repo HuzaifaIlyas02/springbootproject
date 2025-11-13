@@ -3,6 +3,7 @@ package com.huzaifaproject.productservice.service;
 import com.huzaifaproject.productservice.dto.DecreaseQuantityRequest;
 import com.huzaifaproject.productservice.dto.ProductRequest;
 import com.huzaifaproject.productservice.dto.ProductResponse;
+import com.huzaifaproject.productservice.exception.ProductNotFoundException;
 import com.huzaifaproject.productservice.model.Product;
 import com.huzaifaproject.productservice.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
@@ -37,15 +38,15 @@ public class ProductService {
     }
 
     public ProductResponse getProductById(String id) {
-        Product product = productRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Product not found with id: " + id));
+    Product product = productRepository.findById(id)
+        .orElseThrow(() -> new ProductNotFoundException("Product not found with id: " + id));
         log.info("Product {} is retrieved", product.getId());
         return mapToProductResponse(product);
     }
 
     public void updateProduct(String id, ProductRequest productRequest) {
-        Product product = productRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Product not found with id: " + id));
+    Product product = productRepository.findById(id)
+        .orElseThrow(() -> new ProductNotFoundException("Product not found with id: " + id));
 
         product.setName(productRequest.getName());
         product.setDescription(productRequest.getDescription());
@@ -58,31 +59,27 @@ public class ProductService {
 
     public void deleteProduct(String id) {
         if (!productRepository.existsById(id)) {
-            throw new RuntimeException("Product not found with id: " + id);
+            throw new ProductNotFoundException("Product not found with id: " + id);
         }
         productRepository.deleteById(id);
         log.info("Product {} is deleted", id);
     }
     
     public void decreaseQuantity(DecreaseQuantityRequest request) {
-        // Find product by name (skuCode is the product name in lowercase with underscores)
-        String productName = request.getSkuCode().replace("_", " ");
         List<Product> products = productRepository.findAll();
-        
+
         Product product = products.stream()
                 .filter(p -> p.getName().toLowerCase().replace(" ", "_").equals(request.getSkuCode()))
                 .findFirst()
-                .orElse(null);
-        
-        if (product != null && product.getQuantity() != null) {
-            int newQuantity = product.getQuantity() - request.getQuantity();
-            product.setQuantity(Math.max(0, newQuantity)); // Don't go below 0
-            productRepository.save(product);
-            log.info("Decreased quantity for product {} by {}. New quantity: {}", 
-                    product.getName(), request.getQuantity(), product.getQuantity());
-        } else {
-            log.warn("Could not find product with skuCode: {}", request.getSkuCode());
-        }
+                .orElseThrow(() -> new ProductNotFoundException("Product not found with skuCode: " + request.getSkuCode()));
+
+    Integer currentQuantity = product.getQuantity();
+    int requestedQuantity = request.getQuantity() == null ? 0 : request.getQuantity();
+    int updatedQuantity = Math.max(0, (currentQuantity == null ? 0 : currentQuantity) - requestedQuantity);
+        product.setQuantity(updatedQuantity);
+        productRepository.save(product);
+        log.info("Decreased quantity for product {} by {}. New quantity: {}",
+        product.getName(), requestedQuantity, product.getQuantity());
     }
 
     private ProductResponse mapToProductResponse(Product product) {
