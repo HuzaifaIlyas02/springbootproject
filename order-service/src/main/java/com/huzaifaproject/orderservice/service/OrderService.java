@@ -4,6 +4,7 @@ import com.huzaifaproject.orderservice.dto.InventoryResponse;
 import com.huzaifaproject.orderservice.dto.OrderLineItemsDto;
 import com.huzaifaproject.orderservice.dto.OrderRequest;
 import com.huzaifaproject.orderservice.dto.OrderResponse;
+import com.huzaifaproject.orderservice.event.OrderEventProducer;
 import com.huzaifaproject.orderservice.model.Order;
 import com.huzaifaproject.orderservice.model.OrderLineItems;
 import com.huzaifaproject.orderservice.repository.OrderRepository;
@@ -30,6 +31,8 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final WebClient.Builder webClientBuilder;
     private final ObservationRegistry observationRegistry;
+    // Publishes order updates as basic Kafka messages
+    private final OrderEventProducer orderEventProducer;
 
     public String placeOrder(OrderRequest orderRequest) {
         Order order = new Order();
@@ -77,6 +80,9 @@ public class OrderService {
             }
 
             orderRepository.save(order);
+
+            // Sends the saved order number to Kafka
+            orderEventProducer.sendOrderPlaced(order.getOrderNumber());
 
             // Update product quantities in Product Service
             updateProductQuantities(orderRequest.getOrderLineItemsDtoList());
@@ -132,6 +138,7 @@ public class OrderService {
         orderLineItems.setSkuCode(orderLineItemsDto.getSkuCode());
         return orderLineItems;
     }
+
     
     private OrderResponse mapToOrderResponse(Order order) {
         List<OrderLineItemsDto> orderLineItemsDtos = order.getOrderLineItemsList().stream()
