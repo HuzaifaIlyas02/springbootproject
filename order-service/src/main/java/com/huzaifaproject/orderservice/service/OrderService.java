@@ -16,7 +16,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
-
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
@@ -34,14 +33,12 @@ public class OrderService {
     // Publishes order updates as basic Kafka messages
     private final OrderEventProducer orderEventProducer;
 
-    public String placeOrder(OrderRequest orderRequest) {
+    public String placeOrder(OrderRequest orderRequest, String username) {
         Order order = new Order();
         order.setOrderNumber(UUID.randomUUID().toString());
         order.setOrderDate(LocalDateTime.now());
-        
-        // Get username from JWT token
-        String username = getUsernameFromToken();
         order.setUsername(username);
+        log.info("Creating order for user: {}", username);
 
         List<OrderLineItems> orderLineItems = orderRequest.getOrderLineItemsDtoList()
                 .stream()
@@ -103,15 +100,8 @@ public class OrderService {
                 .toList();
     }
     
-    public List<OrderResponse> getMyOrders() {
-        String username = getUsernameFromToken();
+    public List<OrderResponse> getMyOrders(String username) {
         return getOrdersByUsername(username);
-    }
-    
-    private String getUsernameFromToken() {
-        // For now, return a default username
-        // In production, extract from JWT token
-        return "user";
     }
     
     private void updateProductQuantities(List<OrderLineItemsDto> orderItems) {

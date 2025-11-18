@@ -2,6 +2,7 @@ package com.huzaifaproject.orderservice.controller;
 
 import com.huzaifaproject.orderservice.dto.OrderRequest;
 import com.huzaifaproject.orderservice.dto.OrderResponse;
+import com.huzaifaproject.orderservice.security.JwtUsernameResolver;
 import com.huzaifaproject.orderservice.service.OrderService;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.retry.annotation.Retry;
@@ -11,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -21,26 +23,25 @@ import java.util.concurrent.CompletableFuture;
 public class OrderController {
 
     private final OrderService orderService;
+    private final JwtUsernameResolver jwtUsernameResolver;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     @CircuitBreaker(name = "inventory", fallbackMethod = "fallbackMethod")
     @TimeLimiter(name = "inventory")
     @Retry(name = "inventory")
-    public CompletableFuture<String> placeOrder(@RequestBody OrderRequest orderRequest) {
+    public CompletableFuture<String> placeOrder(@RequestBody OrderRequest orderRequest, HttpServletRequest request) {
         log.info("Placing Order");
-        return CompletableFuture.supplyAsync(new java.util.function.Supplier<String>() {
-            public String get() {
-                return orderService.placeOrder(orderRequest);
-            }
-        });
+        String username = jwtUsernameResolver.resolveUsername(request);
+        return CompletableFuture.supplyAsync(() -> orderService.placeOrder(orderRequest, username));
     }
     
     @GetMapping("/history")
     @ResponseStatus(HttpStatus.OK)
-    public List<OrderResponse> getMyOrders() {
+    public List<OrderResponse> getMyOrders(HttpServletRequest request) {
         log.info("Getting my order history");
-        return orderService.getMyOrders();
+        String username = jwtUsernameResolver.resolveUsername(request);
+        return orderService.getMyOrders(username);
     }
     
     @GetMapping("/all")
@@ -52,10 +53,6 @@ public class OrderController {
 
     public CompletableFuture<String> fallbackMethod(OrderRequest orderRequest, RuntimeException runtimeException) {
         log.info("Cannot Place Order Executing Fallback logic");
-        return CompletableFuture.supplyAsync(new java.util.function.Supplier<String>() {
-            public String get() {
-                return "Oops! Something went wrong, please order after some time!";
-            }
-        });
+        return CompletableFuture.supplyAsync(() -> "Oops! Something went wrong, please order after some time!");
     }
 }
