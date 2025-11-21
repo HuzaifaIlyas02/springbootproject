@@ -52,3 +52,10 @@ docker compose down
 docker compose build
 docker compose up -d
 
+
+to rebuild
+docker-compose stop product-service && 
+docker-compose build product-service && 
+docker-compose up -d product-service
+
+

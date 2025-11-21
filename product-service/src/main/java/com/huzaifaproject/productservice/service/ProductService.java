@@ -20,15 +20,21 @@ public class ProductService {
     private final ProductRepository productRepository;
 
     public void createProduct(ProductRequest productRequest) {
+        log.info("Creating product with name: {}, imageData length: {}",
+                productRequest.getName(),
+                productRequest.getImageData() != null ? productRequest.getImageData().length() : 0);
+
         Product product = Product.builder()
                 .name(productRequest.getName())
                 .description(productRequest.getDescription())
                 .price(productRequest.getPrice())
                 .quantity(productRequest.getQuantity())
+                .imageData(productRequest.getImageData())
                 .build();
 
-        productRepository.save(product);
-        log.info("Product {} is saved", product.getId());
+        log.info("Product before save - imageData: {}", product.getImageData() != null ? "present" : "null");
+        Product savedProduct = productRepository.save(product);
+        log.info("Product {} is saved with imageData: {}", savedProduct.getId(), savedProduct.getImageData() != null ? "present" : "null");
     }
 
     public List<ProductResponse> getAllProducts() {
@@ -38,20 +44,21 @@ public class ProductService {
     }
 
     public ProductResponse getProductById(String id) {
-    Product product = productRepository.findById(id)
-        .orElseThrow(() -> new ProductNotFoundException("Product not found with id: " + id));
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new ProductNotFoundException("Product not found with id: " + id));
         log.info("Product {} is retrieved", product.getId());
         return mapToProductResponse(product);
     }
 
     public void updateProduct(String id, ProductRequest productRequest) {
-    Product product = productRepository.findById(id)
-        .orElseThrow(() -> new ProductNotFoundException("Product not found with id: " + id));
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new ProductNotFoundException("Product not found with id: " + id));
 
         product.setName(productRequest.getName());
         product.setDescription(productRequest.getDescription());
         product.setPrice(productRequest.getPrice());
         product.setQuantity(productRequest.getQuantity());
+        product.setImageData(productRequest.getImageData());
 
         productRepository.save(product);
         log.info("Product {} is updated", product.getId());
@@ -64,22 +71,23 @@ public class ProductService {
         productRepository.deleteById(id);
         log.info("Product {} is deleted", id);
     }
-    
+
     public void decreaseQuantity(DecreaseQuantityRequest request) {
         List<Product> products = productRepository.findAll();
 
         Product product = products.stream()
                 .filter(p -> p.getName().toLowerCase().replace(" ", "_").equals(request.getSkuCode()))
                 .findFirst()
-                .orElseThrow(() -> new ProductNotFoundException("Product not found with skuCode: " + request.getSkuCode()));
+                .orElseThrow(
+                        () -> new ProductNotFoundException("Product not found with skuCode: " + request.getSkuCode()));
 
-    Integer currentQuantity = product.getQuantity();
-    int requestedQuantity = request.getQuantity() == null ? 0 : request.getQuantity();
-    int updatedQuantity = Math.max(0, (currentQuantity == null ? 0 : currentQuantity) - requestedQuantity);
+        Integer currentQuantity = product.getQuantity();
+        int requestedQuantity = request.getQuantity() == null ? 0 : request.getQuantity();
+        int updatedQuantity = Math.max(0, (currentQuantity == null ? 0 : currentQuantity) - requestedQuantity);
         product.setQuantity(updatedQuantity);
         productRepository.save(product);
         log.info("Decreased quantity for product {} by {}. New quantity: {}",
-        product.getName(), requestedQuantity, product.getQuantity());
+                product.getName(), requestedQuantity, product.getQuantity());
     }
 
     private ProductResponse mapToProductResponse(Product product) {
@@ -89,6 +97,7 @@ public class ProductService {
                 .description(product.getDescription())
                 .price(product.getPrice())
                 .quantity(product.getQuantity())
+                .imageData(product.getImageData())
                 .build();
     }
 }
