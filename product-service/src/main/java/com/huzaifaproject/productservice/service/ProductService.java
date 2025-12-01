@@ -20,9 +20,6 @@ public class ProductService {
     private final ProductRepository productRepository;
 
     public void createProduct(ProductRequest productRequest) {
-        log.info("Creating product with name: {}, imageData length: {}",
-                productRequest.getName(),
-                productRequest.getImageData() != null ? productRequest.getImageData().length() : 0);
 
         Product product = Product.builder()
                 .name(productRequest.getName())
@@ -34,7 +31,8 @@ public class ProductService {
 
         log.info("Product before save - imageData: {}", product.getImageData() != null ? "present" : "null");
         Product savedProduct = productRepository.save(product);
-        log.info("Product {} is saved with imageData: {}", savedProduct.getId(), savedProduct.getImageData() != null ? "present" : "null");
+        log.info("Product {} is saved with imageData: {}", savedProduct.getId(),
+                savedProduct.getImageData() != null ? "present" : "null");
     }
 
     public List<ProductResponse> getAllProducts() {
