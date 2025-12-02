@@ -1,5 +1,8 @@
 package com.huzaifaproject.apigateway.config;
 
+import java.util.Arrays;
+import java.util.List;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -9,9 +12,6 @@ import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.reactive.CorsConfigurationSource;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
-
-import java.util.Arrays;
-import java.util.List;
 
 @Configuration
 @EnableWebFluxSecurity
@@ -24,6 +24,8 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeExchange(exchange ->
                         exchange.pathMatchers("/eureka/**").permitAll()
+                .pathMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                .pathMatchers(HttpMethod.POST, "/auth/signup").permitAll()
                                 // Admin-only product operations
                                 .pathMatchers(HttpMethod.POST, "/api/product").hasRole("ADMIN")
                                 .pathMatchers(HttpMethod.PUT, "/api/product/**").hasRole("ADMIN")

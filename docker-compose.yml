@@ -144,6 +144,12 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY= TRACE
+      - KEYCLOAK_ADMIN_SERVER_URL=http://keycloak:8080
+      - KEYCLOAK_ADMIN_REALM=spring-boot-microservices-realm
+      - KEYCLOAK_ADMIN_TOKEN_REALM=spring-boot-microservices-realm
+      - KEYCLOAK_ADMIN_CLIENT_ID=spring-cloud-client
+      - KEYCLOAK_ADMIN_CLIENT_SECRET=yzAkVxXyvTyVF1DOKVDAkG1FwvMBt1pP
+      - KEYCLOAK_ADMIN_DEFAULT_ROLE=USER
     depends_on:
       - discovery-server
       - keycloak

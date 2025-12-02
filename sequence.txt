@@ -59,3 +59,8 @@ docker-compose build product-service &&
 docker-compose up -d product-service
 
 
+
+
+
+
+ kill -9 447  
